@@ -31,19 +31,24 @@
             font-family: "Georgia", serif;
             border-radius: 4px;
             cursor: pointer;
+            width: 70%;
         }
-        /* Style for the subheaders in the dropdown */
         optgroup {
             background-color: #1e1a15;
-            color: #8c7a65;
+            color: #f2e6d0; /* Brightest for Book Titles */
             font-style: normal;
             font-weight: bold;
             text-transform: uppercase;
-            font-size: 0.7rem;
+        }
+        option.subheader {
+            color: #8c7a65; /* Faded for "Book One", "Book Two" */
+            font-size: 0.8rem;
+            background-color: #1e1a15;
         }
         option {
             color: #d4c3a1;
             background-color: #161310;
+            padding-left: 10px;
         }
     </style>
 </head>
@@ -146,23 +151,21 @@
 
             return (
                 <div style={styles.container}>
-                    {/* --- UPDATED NAVIGATION BAR WITH SUBHEADERS --- */}
+                    {/* --- UPDATED NAVIGATION WITH NESTED SUBHEADERS --- */}
                     <nav className="nav-bar">
-                        <span style={{fontSize: '0.65rem', color: '#8c7a65', letterSpacing: '1px'}}>GO TO:</span>
-                        <select onChange={(e) => window.location.href = e.target.value}>
+                        <span style={{fontSize: '0.65rem', color: '#8c7a65', letterSpacing: '1px'}}>CHRONICLE:</span>
+                        <select onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
                             <optgroup label="The Fellowship of the Ring">
-                                <optgroup label="Book One">
-                                <option value="index.html">Chapter 1: Hobbiton</option>
-                                <option value="chapter2.html">Chapter 2: Bree</option>
+                                <option disabled className="subheader">─── BOOK ONE ───</option>
+                                <option value="index.html">Ch 1: A Long-Expected Party</option>
+                                <option value="chapter2.html">Ch 2: The Shadow of the Past</option>
+                                <option disabled className="subheader">─── BOOK TWO ───</option>
+                                <option value="chapter1-b2.html">Ch 1: Many Meetings</option>
                             </optgroup>
-                                <optgroup label="Book Two">
-                                <option value="index.html">Chapter 1: test</option>
-                                <option value="chapter2.html">Chapter 2: test</option>
+                            
                             <optgroup label="The Two Towers">
-                                <option value="chapter11.html">Chapter 11: The Taming of Sméagol</option>
-                            </optgroup>
-                            <optgroup label="The Return of the King">
-                                <option value="chapter19.html">Chapter 19: Minas Tirith</option>
+                                <option disabled className="subheader">─── BOOK THREE ───</option>
+                                <option value="chapter1-tt.html">Ch 1: The Departure of Boromir</option>
                             </optgroup>
                         </select>
                     </nav>
@@ -239,4 +242,3 @@
     </script>
 </body>
 </html>
-
