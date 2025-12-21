@@ -1,0 +1,221 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>LOTR Journey Companion</title>
+    <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
+    <style>
+        body { margin: 0; background-color: #161310; color: #d4c3a1; font-family: "Georgia", serif; }
+        * { box-sizing: border-box; }
+        input[type=range] { cursor: pointer; accent-color: #c1a45d; }
+
+        /* --- New Dropdown Styles --- */
+        .nav-header { 
+            display: flex; 
+            justify-content: space-between; 
+            align-items: center; 
+            padding: 10px 0; 
+            border-bottom: 1px solid #3d3329;
+            margin-bottom: 10px;
+        }
+        select {
+            background-color: #1e1a15;
+            color: #c1a45d;
+            border: 1px solid #3d3329;
+            padding: 5px 10px;
+            font-family: "Georgia", serif;
+            border-radius: 4px;
+            cursor: pointer;
+        }
+        select:focus { outline: none; border-color: #c1a45d; }
+    </style>
+</head>
+<body>
+    <div id="root"></div>
+
+    <script type="text/babel">
+        const { useState, useRef, useEffect } = React;
+
+        const LOTRCompanion = () => {
+            const chapters = [
+                {
+                    book: "The Fellowship of the Ring",
+                    number: 1,
+                    title: "A LONG-EXPECTED PARTY",
+                    location: "Hobbiton (Bag End)",
+                    currentDate: "September 22",
+                    illustrations: [
+                        { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
+                        { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf the Grey" },
+                        { url: "https://i.imgur.com/h0kIwMT.jpeg", label: "Fireworks at Bilbo's party" },
+                        { url: "https://i.imgur.com/ixBz7nb.jpeg", label: "Frodo and Gandalf discuss the Ring" },
+                        { url: "https://i.imgur.com/nzlwhCp.jpeg", label: "The Ring" }
+                    ],
+                    videos: [
+                        { id: "9B6dsfGazyI", label: "Roads Go Ever On - Clamavi De Profundis" },
+                        { id: "CL_3mlOPnGI", label: "Concerning Hobbits - Howard Shore" }
+                    ],
+                    coords: { x: 18.2, y: 22.5 }
+                }
+            ];
+
+            const [index, setIndex] = useState(0);
+            const current = chapters[index];
+            const departureDate = "September 23";
+            
+            const [mapPos, setMapPos] = useState(current.coords);
+            const [zoom, setZoom] = useState(350);
+            const [isDragging, setIsDragging] = useState(false);
+            const mapRef = useRef(null);
+            const lastMousePos = useRef({ x: 0, y: 0 });
+
+            // SCROLL TO ZOOM LOGIC
+            useEffect(() => {
+                const mapContainer = mapRef.current;
+                
+                const handleWheel = (e) => {
+                    e.preventDefault(); 
+                    
+                    const zoomSpeed = 40;
+                    setZoom((prevZoom) => {
+                        const nextZoom = e.deltaY < 0 ? prevZoom + zoomSpeed : prevZoom - zoomSpeed;
+                        return Math.min(Math.max(nextZoom, 100), 1000);
+                    });
+                };
+
+                if (mapContainer) {
+                    mapContainer.addEventListener("wheel", handleWheel, { passive: false });
+                }
+                return () => {
+                    if (mapContainer) mapContainer.removeEventListener("wheel", handleWheel);
+                };
+            }, []);
+
+            // DRAG LOGIC
+            const handleMouseDown = (e) => {
+                setIsDragging(true);
+                lastMousePos.current = { x: e.clientX, y: e.clientY };
+            };
+
+            const handleMouseMove = (e) => {
+                if (!isDragging) return;
+                const dx = e.clientX - lastMousePos.current.x;
+                const dy = e.clientY - lastMousePos.current.y;
+                const sensitivity = 0.3 * (100 / zoom);
+                setMapPos((prev) => ({
+                    x: prev.x - dx * sensitivity,
+                    y: prev.y - dy * sensitivity,
+                }));
+                lastMousePos.current = { x: e.clientX, y: e.clientY };
+            };
+
+            const calculateElapsed = (dateStr) => {
+                if (dateStr.includes("September 22")) return 0;
+                const day = parseInt(dateStr.split(" ")[1]);
+                return day - 23;
+            };
+
+            const styles = {
+                container: { maxWidth: "500px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "25px", padding: "20px" },
+                section: { backgroundColor: "#1e1a15", border: "1px solid #3d3329", padding: "15px", borderRadius: "4px" },
+                boxLabel: { fontSize: "0.6rem", color: "#8c7a65", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px", display: "block" },
+                itemLabel: { fontSize: "0.75rem", color: "#c1a45d", marginBottom: "8px", borderBottom: "1px solid #3d3329", paddingBottom: "4px", display: "block" },
+                mapContainer: { 
+                    width: "100%", 
+                    height: "350px", 
+                    border: "2px solid #c1a45d", 
+                    position: "relative", 
+                    overflow: "hidden", 
+                    cursor: isDragging ? "grabbing" : "grab", 
+                    borderRadius: "4px", 
+                    touchAction: "none" 
+                }
+            };
+
+            return (
+                <div style={styles.container}>
+                    {/* --- NEW DROPDOWN MENU --- */}
+                    <nav className="nav-header">
+                        <span style={{fontSize: '0.7rem', color: '#8c7a65'}}>GO TO:</span>
+                        <select onChange={(e) => window.location.href = e.target.value}>
+                            <option value="index.html">Chapter 1: Hobbiton</option>
+                            <option value="chapter2.html">Chapter 2: Bree</option>
+                            <option value="chapter3.html">Chapter 3: Rivendell</option>
+                        </select>
+                    </nav>
+
+                    <header style={{ textAlign: "center", borderBottom: "1px solid #3d3329", paddingBottom: "15px" }}>
+                        <div style={{ fontSize: "0.8rem", color: "#8c7a65", letterSpacing: "2px" }}>THE FELLOWSHIP OF THE RING</div>
+                        <h1 style={{ fontSize: "1.4rem", color: "#f2e6d0" }}>Chapter {current.number}: {current.title}</h1>
+                    </header>
+
+                    <div style={{ border: "1px solid #c1a45d", padding: "20px", borderRadius: "4px", backgroundColor: "#1e1a15", boxShadow: "inset 0 0 20px black" }}>
+                        <span style={{ display: "block", textAlign: "center", fontSize: "0.7rem", color: "#c1a45d", marginBottom: "10px" }}>CHRONICLE OF THE JOURNEY</span>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <div><small style={{ color: "#8c7a65" }}>Departure</small><br />{departureDate}</div>
+                            <div style={{ textAlign: "right" }}><small style={{ color: "#8c7a65" }}>Current Date</small><br />{current.currentDate}</div>
+                        </div>
+                        <div style={{ textAlign: "center", fontSize: "1.5rem", marginTop: "10px" }}>{calculateElapsed(current.currentDate)} Days Elapsed</div>
+                    </div>
+
+                    <section style={styles.section}>
+                        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
+                            <span style={styles.boxLabel}>Location: {current.location}</span>
+                            <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
+                                <small style={{fontSize: '0.6rem', color: '#8c7a65'}}>ZOOM</small>
+                                <input type="range" min="100" max="1000" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
+                            </div>
+                        </div>
+                        <div 
+                            ref={mapRef}
+                            style={styles.mapContainer} 
+                            onMouseDown={handleMouseDown} 
+                            onMouseMove={handleMouseMove} 
+                            onMouseUp={() => setIsDragging(false)} 
+                            onMouseLeave={() => setIsDragging(false)}
+                        >
+                            <div style={{
+                                width: "100%", height: "100%",
+                                backgroundImage: "url('https://i.redd.it/r8403tg0wo5c1.jpeg')",
+                                backgroundSize: `${zoom}%`,
+                                backgroundPosition: `${mapPos.x}% ${mapPos.y}%`,
+                                backgroundRepeat: "no-repeat",
+                                transition: isDragging ? "none" : "background-position 0.1s ease-out"
+                            }}></div>
+                        </div>
+                        <div style={{textAlign: 'center', marginTop: '5px'}}>
+                            <small style={{fontSize: '0.55rem', color: '#8c7a65'}}>Scroll to zoom • Click and drag to move</small>
+                        </div>
+                    </section>
+
+                    <section style={styles.section}>
+                        <span style={styles.boxLabel}>Visual Gallery</span>
+                        {current.illustrations.map((item, idx) => (
+                            <div key={idx} style={{ marginBottom: "20px" }}>
+                                <span style={styles.itemLabel}>{item.label}</span>
+                                <img src={item.url} style={{ width: "100%", borderRadius: "2px" }} alt={item.label} />
+                            </div>
+                        ))}
+                    </section>
+
+                    <section style={styles.section}>
+                        <span style={styles.boxLabel}>Songs & Poems</span>
+                        {current.videos.map((item, idx) => (
+                            <div key={idx} style={{ marginBottom: "20px" }}>
+                                <span style={styles.itemLabel}>{item.label}</span>
+                                <iframe width="100%" height="200" src={`https://www.youtube.com/embed/${item.id}`} style={{ border: "none" }} allowFullScreen></iframe>
+                            </div>
+                        ))}
+                    </section>
+                </div>
+            );
+        };
+
+        const root = ReactDOM.createRoot(document.getElementById('root'));
+        root.render(<LOTRCompanion />);
+    </script>
+</body>
+</html>
