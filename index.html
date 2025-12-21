@@ -32,6 +32,19 @@
             border-radius: 4px;
             cursor: pointer;
         }
+        /* Style for the subheaders in the dropdown */
+        optgroup {
+            background-color: #1e1a15;
+            color: #8c7a65;
+            font-style: normal;
+            font-weight: bold;
+            text-transform: uppercase;
+            font-size: 0.7rem;
+        }
+        option {
+            color: #d4c3a1;
+            background-color: #161310;
+        }
     </style>
 </head>
 <body>
@@ -73,22 +86,16 @@
             const mapRef = useRef(null);
             const lastMousePos = useRef({ x: 0, y: 0 });
 
-            // SCROLL TO ZOOM LOGIC
             useEffect(() => {
                 const mapContainer = mapRef.current;
-                
                 const handleWheel = (e) => {
-                    // Only zoom if mouse is over the map
                     e.preventDefault(); 
-                    
                     const zoomSpeed = 40;
                     setZoom((prevZoom) => {
                         const nextZoom = e.deltaY < 0 ? prevZoom + zoomSpeed : prevZoom - zoomSpeed;
-                        // Limit zoom between 100% and 1000%
                         return Math.min(Math.max(nextZoom, 100), 1000);
                     });
                 };
-
                 if (mapContainer) {
                     mapContainer.addEventListener("wheel", handleWheel, { passive: false });
                 }
@@ -97,7 +104,6 @@
                 };
             }, []);
 
-            // DRAG LOGIC
             const handleMouseDown = (e) => {
                 setIsDragging(true);
                 lastMousePos.current = { x: e.clientX, y: e.clientY };
@@ -140,14 +146,20 @@
 
             return (
                 <div style={styles.container}>
-                    {/* --- NEW NAVIGATION BAR --- */}
+                    {/* --- UPDATED NAVIGATION BAR WITH SUBHEADERS --- */}
                     <nav className="nav-bar">
-                        <span style={{fontSize: '0.65rem', color: '#8c7a65', letterSpacing: '1px'}}>CHOOSE CHAPTER:</span>
+                        <span style={{fontSize: '0.65rem', color: '#8c7a65', letterSpacing: '1px'}}>GO TO:</span>
                         <select onChange={(e) => window.location.href = e.target.value}>
-                            <option value="index.html">Chapter 1: Hobbiton</option>
-                            <option value="chapter2.html">Chapter 2: Bree</option>
-                            <option value="chapter3.html">Chapter 3: Rivendell</option>
-                            <option value="chapter4.html">Chapter 4: Moria</option>
+                            <optgroup label="The Fellowship of the Ring">
+                                <option value="index.html">Chapter 1: Hobbiton</option>
+                                <option value="chapter2.html">Chapter 2: Bree</option>
+                            </optgroup>
+                            <optgroup label="The Two Towers">
+                                <option value="chapter11.html">Chapter 11: The Taming of Sméagol</option>
+                            </optgroup>
+                            <optgroup label="The Return of the King">
+                                <option value="chapter19.html">Chapter 19: Minas Tirith</option>
+                            </optgroup>
                         </select>
                     </nav>
 
