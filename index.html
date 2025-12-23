@@ -11,27 +11,8 @@
         body { margin: 0; background-color: #161310; color: #d4c3a1; font-family: "Georgia", serif; }
         * { box-sizing: border-box; }
         input[type=range] { cursor: pointer; accent-color: #c1a45d; }
-
-        .nav-bar {
-            display: flex;
-            justify-content: space-between;
-            align-items: center;
-            background-color: #1e1a15;
-            padding: 10px 15px;
-            border: 1px solid #3d3329;
-            border-radius: 4px;
-            margin-bottom: 10px;
-        }
-        .nav-bar select {
-            background-color: #161310;
-            color: #c1a45d;
-            border: 1px solid #3d3329;
-            padding: 5px;
-            font-family: "Georgia", serif;
-            border-radius: 4px;
-            cursor: pointer;
-            width: 75%;
-        }
+        .nav-bar { display: flex; justify-content: space-between; align-items: center; background-color: #1e1a15; padding: 10px 15px; border: 1px solid #3d3329; border-radius: 4px; margin-bottom: 10px; }
+        .nav-bar select { background-color: #161310; color: #c1a45d; border: 1px solid #3d3329; padding: 5px; font-family: "Georgia", serif; border-radius: 4px; width: 75%; }
     </style>
 </head>
 <body>
@@ -40,34 +21,38 @@
     <script type="text/babel">
         const { useState, useRef, useEffect } = React;
 
-        const LOTRCompanion = () => {
-            const chapters = [
-                {
-                    book: "The Fellowship of the Ring",
-                    number: 1,
-                    title: "A LONG-EXPECTED PARTY",
-                    location: "Hobbiton (Bag End)",
-                    currentDate: "September 22",
-                    illustrations: [
-                        { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
-                        { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf the Grey" },
-                        { url: "https://i.imgur.com/h0kIwMT.jpeg", label: "Fireworks at Bilbo's party" },
-                        { url: "https://i.imgur.com/ixBz7nb.jpeg", label: "Frodo and Gandalf discuss the Ring" },
-                        { url: "https://i.imgur.com/nzlwhCp.jpeg", label: "The Ring" }
-                    ],
-                    videos: [
-                        { id: "9B6dsfGazyI", label: "Roads Go Ever On - Clamavi De Profundis" },
-                        { id: "CL_3mlOPnGI", label: "Concerning Hobbits - Howard Shore" }
-                    ],
-                    coords: { x: 18.2, y: 22.5 }
-                }
-            ];
+        // =========================================================
+        // 1. EDITABLE CONTENT AREA (The only place you need to touch)
+        // =========================================================
+        const CHAPTER_DATA = {
+            bookTitle: "THE FELLOWSHIP OF THE RING",
+            departureDate: "September 23",
+            currentChapter: {
+                number: 1,
+                title: "A LONG-EXPECTED PARTY",
+                location: "Hobbiton (Bag End)",
+                currentDate: "September 22",
+                coords: { x: 18.2, y: 22.5 }, // Map coordinates
+                illustrations: [
+                    { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
+                    { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf the Grey" },
+                    { url: "https://i.imgur.com/h0kIwMT.jpeg", label: "Fireworks at Bilbo's party" },
+                    { url: "https://i.imgur.com/ixBz7nb.jpeg", label: "Frodo and Gandalf discuss the Ring" },
+                    { url: "https://i.imgur.com/nzlwhCp.jpeg", label: "The Ring" }
+                ],
+                videos: [
+                    { id: "9B6dsfGazyI", label: "Roads Go Ever On - Clamavi De Profundis" },
+                    { id: "CL_3mlOPnGI", label: "Concerning Hobbits - Howard Shore" }
+                ]
+            }
+        };
 
-            const [index, setIndex] = useState(0);
-            const current = chapters[index];
-            const departureDate = "September 23";
-            
-            const [mapPos, setMapPos] = useState(current.coords);
+        // =========================================================
+        // 2. TECHNICAL ENGINE (The logic that runs the app)
+        // =========================================================
+        const LOTRCompanion = () => {
+            const data = CHAPTER_DATA.currentChapter;
+            const [mapPos, setMapPos] = useState(data.coords);
             const [zoom, setZoom] = useState(350);
             const [isDragging, setIsDragging] = useState(false);
             const mapRef = useRef(null);
@@ -76,25 +61,14 @@
 
             useEffect(() => {
                 const mapContainer = mapRef.current;
-                
-                // HANDLE MOUSE WHEEL & PINCH GESTURE
                 const handleWheel = (e) => {
-                    e.preventDefault(); 
-                    const zoomSpeed = 40;
-                    setZoom((prevZoom) => {
-                        const nextZoom = e.deltaY < 0 ? prevZoom + zoomSpeed : prevZoom - zoomSpeed;
-                        return Math.min(Math.max(nextZoom, 100), 1000);
-                    });
+                    e.preventDefault();
+                    setZoom(prev => Math.min(Math.max(e.deltaY < 0 ? prev + 40 : prev - 40, 100), 1000));
                 };
-
                 const handleTouchMove = (e) => {
                     if (e.touches.length === 2) {
-                        e.preventDefault(); // STOP THE BROWSER FROM ZOOMING THE PAGE
-                        const dist = Math.hypot(
-                            e.touches[0].pageX - e.touches[1].pageX,
-                            e.touches[0].pageY - e.touches[1].pageY
-                        );
-                        
+                        e.preventDefault();
+                        const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
                         if (lastTouchDist.current > 0) {
                             const zoomFactor = dist / lastTouchDist.current;
                             setZoom(prev => Math.min(Math.max(prev * zoomFactor, 100), 1000));
@@ -102,10 +76,7 @@
                         lastTouchDist.current = dist;
                     }
                 };
-
-                const handleTouchEnd = () => {
-                    lastTouchDist.current = 0;
-                };
+                const handleTouchEnd = () => { lastTouchDist.current = 0; };
 
                 if (mapContainer) {
                     mapContainer.addEventListener("wheel", handleWheel, { passive: false });
@@ -121,39 +92,20 @@
                 };
             }, []);
 
-            const handleMouseDown = (e) => {
-                setIsDragging(true);
-                lastPos.current = { x: e.clientX, y: e.clientY };
-            };
-
-            const handleTouchStart = (e) => {
-                if (e.touches.length === 1) {
-                    setIsDragging(true);
-                    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                }
-            };
-
+            const handleMouseDown = (e) => { setIsDragging(true); lastPos.current = { x: e.clientX, y: e.clientY }; };
+            const handleTouchStart = (e) => { if (e.touches.length === 1) { setIsDragging(true); lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } };
             const move = (clientX, clientY) => {
                 if (!isDragging) return;
                 const dx = clientX - lastPos.current.x;
                 const dy = clientY - lastPos.current.y;
                 const sensitivity = 0.3 * (100 / zoom);
-                setMapPos((prev) => ({
-                    x: prev.x - dx * sensitivity,
-                    y: prev.y - dy * sensitivity,
-                }));
+                setMapPos(prev => ({ x: prev.x - dx * sensitivity, y: prev.y - dy * sensitivity }));
                 lastPos.current = { x: clientX, y: clientY };
-            };
-
-            const handleMouseMove = (e) => move(e.clientX, e.clientY);
-            const handleTouchMoveSingle = (e) => {
-                if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY);
             };
 
             const calculateElapsed = (dateStr) => {
                 if (dateStr.includes("September 22")) return 0;
-                const day = parseInt(dateStr.split(" ")[1]);
-                return day - 23;
+                return parseInt(dateStr.split(" ")[1]) - 23;
             };
 
             const styles = {
@@ -248,22 +200,22 @@
                     </nav>
 
                     <header style={{ textAlign: "center", borderBottom: "1px solid #3d3329", paddingBottom: "15px" }}>
-                        <div style={{ fontSize: "0.8rem", color: "#8c7a65", letterSpacing: "2px" }}>THE FELLOWSHIP OF THE RING</div>
-                        <h1 style={{ fontSize: "1.4rem", color: "#f2e6d0" }}>Chapter {current.number}: {current.title}</h1>
+                        <div style={{ fontSize: "0.8rem", color: "#8c7a65", letterSpacing: "2px" }}>{CHAPTER_DATA.bookTitle}</div>
+                        <h1 style={{ fontSize: "1.4rem", color: "#f2e6d0" }}>Chapter {data.number}: {data.title}</h1>
                     </header>
 
                     <div style={{ border: "1px solid #c1a45d", padding: "20px", borderRadius: "4px", backgroundColor: "#1e1a15", boxShadow: "inset 0 0 20px black" }}>
                         <span style={{ display: "block", textAlign: "center", fontSize: "0.7rem", color: "#c1a45d", marginBottom: "10px" }}>CHRONICLE OF THE JOURNEY</span>
                         <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <div><small style={{ color: "#8c7a65" }}>Departure</small><br />{departureDate}</div>
-                            <div style={{ textAlign: "right" }}><small style={{ color: "#8c7a65" }}>Current Date</small><br />{current.currentDate}</div>
+                            <div><small style={{ color: "#8c7a65" }}>Departure</small><br />{CHAPTER_DATA.departureDate}</div>
+                            <div style={{ textAlign: "right" }}><small style={{ color: "#8c7a65" }}>Current Date</small><br />{data.currentDate}</div>
                         </div>
-                        <div style={{ textAlign: "center", fontSize: "1.5rem", marginTop: "10px" }}>{calculateElapsed(current.currentDate)} Days Elapsed</div>
+                        <div style={{ textAlign: "center", fontSize: "1.5rem", marginTop: "10px" }}>{calculateElapsed(data.currentDate)} Days Elapsed</div>
                     </div>
 
                     <section style={styles.section}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
-                            <span style={styles.boxLabel}>Location: {current.location}</span>
+                            <span style={styles.boxLabel}>Location: {data.location}</span>
                             <div style={{display: 'flex', alignItems: 'center', gap: '8px'}}>
                                 <small style={{fontSize: '0.6rem', color: '#8c7a65'}}>ZOOM</small>
                                 <input type="range" min="100" max="1000" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
@@ -273,11 +225,11 @@
                             ref={mapRef}
                             style={styles.mapContainer} 
                             onMouseDown={handleMouseDown} 
-                            onMouseMove={handleMouseMove} 
+                            onMouseMove={(e) => move(e.clientX, e.clientY)} 
                             onMouseUp={() => setIsDragging(false)} 
                             onMouseLeave={() => setIsDragging(false)}
                             onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMoveSingle}
+                            onTouchMove={(e) => { if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY); }}
                             onTouchEnd={() => setIsDragging(false)}
                         >
                             <div style={{
@@ -289,14 +241,11 @@
                                 transition: isDragging ? "none" : "background-position 0.1s ease-out"
                             }}></div>
                         </div>
-                        <div style={{textAlign: 'center', marginTop: '5px'}}>
-                            <small style={{fontSize: '0.55rem', color: '#8c7a65'}}>Pinch to zoom • Drag to move</small>
-                        </div>
                     </section>
 
                     <section style={styles.section}>
                         <span style={styles.boxLabel}>Visual Gallery</span>
-                        {current.illustrations.map((item, idx) => (
+                        {data.illustrations.map((item, idx) => (
                             <div key={idx} style={{ marginBottom: "20px" }}>
                                 <span style={styles.itemLabel}>{item.label}</span>
                                 <img src={item.url} style={{ width: "100%", borderRadius: "2px" }} alt={item.label} />
@@ -306,7 +255,7 @@
 
                     <section style={styles.section}>
                         <span style={styles.boxLabel}>Songs & Poems</span>
-                        {current.videos.map((item, idx) => (
+                        {data.videos.map((item, idx) => (
                             <div key={idx} style={{ marginBottom: "20px" }}>
                                 <span style={styles.itemLabel}>{item.label}</span>
                                 <iframe width="100%" height="200" src={`https://www.youtube.com/embed/${item.id}`} style={{ border: "none" }} allowFullScreen></iframe>
