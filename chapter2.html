@@ -2,16 +2,17 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>LOTR Journey Companion</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
-        body { margin: 0; background-color: #161310; color: #d4c3a1; font-family: "Georgia", serif; overflow-x: hidden; }
+        body { margin: 0; background-color: #161310; color: #d4c3a1; font-family: "Georgia", serif; }
         * { box-sizing: border-box; }
         input[type=range] { cursor: pointer; accent-color: #c1a45d; }
 
+        /* --- STABLE NAVIGATION STYLES --- */
         .nav-bar {
             display: flex;
             justify-content: space-between;
@@ -44,8 +45,8 @@
             const chapters = [
                 {
                     book: "The Fellowship of the Ring",
-                    number: 2,
-                    title: "THE SHADOW OF THE PAST",
+                    number: 1,
+                    title: "A LONG-EXPECTED PARTY",
                     location: "Hobbiton (Bag End)",
                     currentDate: "September 22",
                     illustrations: [
@@ -72,7 +73,6 @@
             const [isDragging, setIsDragging] = useState(false);
             const mapRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
-            const lastDist = useRef(0);
 
             useEffect(() => {
                 const mapContainer = mapRef.current;
@@ -92,12 +92,20 @@
                 };
             }, []);
 
-            // Helper for pinch distance
-            const getDist = (touches) => {
-                return Math.hypot(touches[0].pageX - touches[1].pageX, touches[0].pageY - touches[1].pageY);
+            // Handle Desktop Start
+            const handleMouseDown = (e) => {
+                setIsDragging(true);
+                lastPos.current = { x: e.clientX, y: e.clientY };
             };
 
-            const handleMove = (clientX, clientY) => {
+            // Handle Mobile Start
+            const handleTouchStart = (e) => {
+                setIsDragging(true);
+                lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+            };
+
+            // Shared movement logic
+            const move = (clientX, clientY) => {
                 if (!isDragging) return;
                 const dx = clientX - lastPos.current.x;
                 const dy = clientY - lastPos.current.y;
@@ -109,32 +117,8 @@
                 lastPos.current = { x: clientX, y: clientY };
             };
 
-            const handleMouseDown = (e) => {
-                setIsDragging(true);
-                lastPos.current = { x: e.clientX, y: e.clientY };
-            };
-
-            const handleTouchStart = (e) => {
-                setIsDragging(true);
-                if (e.touches.length === 2) {
-                    lastDist.current = getDist(e.touches);
-                } else {
-                    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
-                }
-            };
-
-            const handleTouchMove = (e) => {
-                if (e.touches.length === 2) {
-                    // PINCH LOGIC
-                    const dist = getDist(e.touches);
-                    const delta = dist - lastDist.current;
-                    setZoom(prev => Math.min(Math.max(prev + delta * 1.5, 100), 1000));
-                    lastDist.current = dist;
-                } else {
-                    // DRAG LOGIC
-                    handleMove(e.touches[0].clientX, e.touches[0].clientY);
-                }
-            };
+            const handleMouseMove = (e) => move(e.clientX, e.clientY);
+            const handleTouchMove = (e) => move(e.touches[0].clientX, e.touches[0].clientY);
 
             const calculateElapsed = (dateStr) => {
                 if (dateStr.includes("September 22")) return 0;
@@ -161,13 +145,83 @@
 
             return (
                 <div style={styles.container}>
+                    {/* --- NAVIGATION BAR --- */}
                     <nav className="nav-bar">
                         <span style={{fontSize: '0.65rem', color: '#8c7a65'}}>GO TO:</span>
                         <select onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
                             <optgroup label="FELLOWSHIP OF THE RING">
+                                <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
                                 <option value="chapter2.html">Ch 2: The Shadow of the Past</option>
                                 <option value="chapter3.html">Ch 3: Three Is Company</option>
+                                <option value="chapter4.html">Ch 4: A Shortcut to Mushrooms</option>
+                                <option value="chapter5.html">Ch 5: A Conspiracy Unmasked</option>
+                                <option value="chapter6.html">Ch 6: The Old Forest</option>
+                                <option value="chapter7.html">Ch 7: In the House of Tom Bombadil</option>
+                                <option value="chapter8.html">Ch 8: Fog on the Barrow-Downs</option>
+                                <option value="chapter9.html">Ch 9: At the Sign of the Prancing Pony</option>
+                                <option value="chapter10.html">Ch 10: Strider</option>
+                                <option value="chapter11.html">Ch 11: A Knife in the Dark</option>
+                                <option value="chapter12.html">Ch 12: Flight to the Ford</option>
+                                <option disabled>── BOOK TWO ──</option>
+                                <option value="chapter1-b2.html">Ch 1: Many Meetings</option>
+                                <option value="chapter2-b2.html">Ch 2: The Council of Elrond</option>
+                                <option value="chapter3-b2.html">Ch 3: The Ring Goes South</option>
+                                <option value="chapter4-b2.html">Ch 4: A Journey in the Dark</option>
+                                <option value="chapter5-b2.html">Ch 5: The Bridge of Khazad-dûm</option>
+                                <option value="chapter6-b2.html">Ch 6: Lothlórien</option>
+                                <option value="chapter7-b2.html">Ch 7: The Mirror of Galadriel</option>
+                                <option value="chapter8-b2.html">Ch 8: Farewell to Lórien</option>
+                                <option value="chapter9-b2.html">Ch 9: The Great River</option>
+                                <option value="chapter10-b2.html">Ch 10: The Breaking of the Fellowship</option>
+                            </optgroup>
+                            <optgroup label="THE TWO TOWERS">
+                                <option disabled>── BOOK THREE ──</option>
+                                <option value="chapter1-tt.html">Ch 1: The Departure of Boromir</option>
+                                <option value="chapter2-tt.html">Ch 2: The Riders of Rohan</option>
+                                <option value="chapter3-tt.html">Ch 3: The Uruk-hai</option>
+                                <option value="chapter4-tt.html">Ch 4: Treebeard</option>
+                                <option value="chapter5-tt.html">Ch 5: The White Rider</option>
+                                <option value="chapter6-tt.html">Ch 6: The King of the Golden Hall</option>
+                                <option value="chapter7-tt.html">Ch 7: Helm's Deep</option>
+                                <option value="chapter8-tt.html">Ch 8: The Road to Isengard</option>
+                                <option value="chapter9-tt.html">Ch 9: Flotsam and Jetsam</option>
+                                <option value="chapter10-tt.html">Ch 10: The Voice of Saruman</option>
+                                <option value="chapter11-tt.html">Ch 11: The Palantír</option>
+                                <option disabled>── BOOK FOUR ──</option>
+                                <option value="chapter1-tt-b4.html">Ch 1: The Taming of Sméagol</option>
+                                <option value="chapter2-tt-b4.html">Ch 2: The Passage of the Marshes</option>
+                                <option value="chapter3-tt-b4.html">Ch 3: The Black Gate is Closed</option>
+                                <option value="chapter4-tt-b4.html">Ch 4: Of Herbs and Stewed Rabbit</option>
+                                <option value="chapter5-tt-b4.html">Ch 5: The Window on the West</option>
+                                <option value="chapter6-tt-b4.html">Ch 6: The Forbidden Pool</option>
+                                <option value="chapter7-tt-b4.html">Ch 7: Journey to the Cross-roads</option>
+                                <option value="chapter8-tt-b4.html">Ch 8: The Stairs of Cirith Ungol</option>
+                                <option value="chapter9-tt-b4.html">Ch 9: Shelob's Lair</option>
+                                <option value="chapter10-tt-b4.html">Ch 10: The Choices of Master Samwise</option>
+                            </optgroup>
+                            <optgroup label="THE RETURN OF THE KING">
+                                <option disabled>── BOOK FIVE ──</option>
+                                <option value="chapter1-rotk.html">Ch 1: Minas Tirith</option>
+                                <option value="chapter2-rotk.html">Ch 2: The Passing of the Grey Company</option>
+                                <option value="chapter3-rotk.html">Ch 3: The Muster of Rohan</option>
+                                <option value="chapter4-rotk.html">Ch 4: The Siege of Gondor</option>
+                                <option value="chapter5-rotk.html">Ch 5: The Ride of the Rohirrim</option>
+                                <option value="chapter6-rotk.html">Ch 6: The Battle of the Pelennor Fields</option>
+                                <option value="chapter7-rotk.html">Ch 7: The Pyre of Denethor</option>
+                                <option value="chapter8-rotk.html">Ch 8: The Houses of Healing</option>
+                                <option value="chapter9-rotk.html">Ch 9: The Last Debate</option>
+                                <option value="chapter10-rotk.html">Ch 10: The Black Gate Opens</option>
+                                <option disabled>── BOOK SIX ──</option>
+                                <option value="chapter1-rotk-b6.html">Ch 1: The Tower of Cirith Ungol</option>
+                                <option value="chapter2-rotk-b6.html">Ch 2: The Land of Shadow</option>
+                                <option value="chapter3-rotk-b6.html">Ch 3: Mount Doom</option>
+                                <option value="chapter4-rotk-b6.html">Ch 4: The Field of Cormallen</option>
+                                <option value="chapter5-rotk-b6.html">Ch 5: The Steward and the King</option>
+                                <option value="chapter6-rotk-b6.html">Ch 6: Many Partings</option>
+                                <option value="chapter7-rotk-b6.html">Ch 7: Homeward Bound</option>
+                                <option value="chapter8-rotk-b6.html">Ch 8: The Scouring of the Shire</option>
+                                <option value="chapter9-rotk-b6.html">Ch 9: The Grey Havens</option>
                             </optgroup>
                         </select>
                     </nav>
@@ -198,7 +252,7 @@
                             ref={mapRef}
                             style={styles.mapContainer} 
                             onMouseDown={handleMouseDown} 
-                            onMouseMove={(e) => handleMove(e.clientX, e.clientY)} 
+                            onMouseMove={handleMouseMove} 
                             onMouseUp={() => setIsDragging(false)} 
                             onMouseLeave={() => setIsDragging(false)}
                             onTouchStart={handleTouchStart}
@@ -215,7 +269,7 @@
                             }}></div>
                         </div>
                         <div style={{textAlign: 'center', marginTop: '5px'}}>
-                            <small style={{fontSize: '0.55rem', color: '#8c7a65'}}>Pinch or scroll to zoom • Drag to move</small>
+                            <small style={{fontSize: '0.55rem', color: '#8c7a65'}}>Scroll to zoom • Drag to move</small>
                         </div>
                     </section>
 
