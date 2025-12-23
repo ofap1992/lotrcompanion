@@ -38,10 +38,11 @@
                     title: "A LONG-EXPECTED PARTY",
                     location: "Hobbiton (Bag End)",
                     currentDate: "September 22",
-                    coords: { x: 27.6, y: 5.0 },
+                    coords: { x: 18.2, y: 22.5 },
                     illustrations: [
                         { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
-                        { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf" }
+                        { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf" },
+                        { url: "https://i.imgur.com/h0kIwMT.jpeg", label: "Bilbo's Party" }
                     ],
                     videos: [{ id: "9B6dsfGazyI", label: "Roads Go Ever On" }]
                 },
@@ -59,6 +60,9 @@
 
         const ACTIVE_CHAPTER_INDEX = 0; 
 
+        // =========================================================
+        // 2. TECHNICAL ENGINE
+        // =========================================================
         const LOTRCompanion = () => {
             const current = JOURNEY_DATA.chapters[ACTIVE_CHAPTER_INDEX];
             const [mapPos, setMapPos] = useState(current.coords);
@@ -97,6 +101,13 @@
                 });
             };
 
+            const calculateElapsed = (dateStr) => {
+                if (dateStr.includes("September 22")) return 0;
+                const parts = dateStr.split(" ");
+                const day = parseInt(parts[parts.length - 1]);
+                return isNaN(day) ? 0 : day - 23;
+            };
+
             const styles = {
                 container: { maxWidth: "500px", margin: "0 auto", display: "flex", flexDirection: "column", gap: "25px", padding: "20px" },
                 section: { backgroundColor: "#1e1a15", border: "1px solid #3d3329", padding: "15px", borderRadius: "4px" },
@@ -107,11 +118,13 @@
 
             return (
                 <div style={styles.container}>
+                    {/* COMPLETE CHAPTER LIST RESTORED */}
                     <nav className="nav-bar">
                         <span style={{fontSize: '0.65rem', color: '#8c7a65'}}>GO TO:</span>
                         <select defaultValue="" onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
                             <option value="" disabled>Select a Chapter...</option>
                             <optgroup label="FELLOWSHIP OF THE RING">
+                                <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
                                 <option value="chapter2.html">Ch 2: The Shadow of the Past</option>
                                 <option value="chapter3.html">Ch 3: Three Is Company</option>
@@ -136,6 +149,54 @@
                                 <option value="chapter9-b2.html">Ch 9: The Great River</option>
                                 <option value="chapter10-b2.html">Ch 10: The Breaking of the Fellowship</option>
                             </optgroup>
+                            <optgroup label="THE TWO TOWERS">
+                                <option disabled>── BOOK THREE ──</option>
+                                <option value="chapter1-tt.html">Ch 1: The Departure of Boromir</option>
+                                <option value="chapter2-tt.html">Ch 2: The Riders of Rohan</option>
+                                <option value="chapter3-tt.html">Ch 3: The Uruk-hai</option>
+                                <option value="chapter4-tt.html">Ch 4: Treebeard</option>
+                                <option value="chapter5-tt.html">Ch 5: The White Rider</option>
+                                <option value="chapter6-tt.html">Ch 6: The King of the Golden Hall</option>
+                                <option value="chapter7-tt.html">Ch 7: Helm's Deep</option>
+                                <option value="chapter8-tt.html">Ch 8: The Road to Isengard</option>
+                                <option value="chapter9-tt.html">Ch 9: Flotsam and Jetsam</option>
+                                <option value="chapter10-tt.html">Ch 10: The Voice of Saruman</option>
+                                <option value="chapter11-tt.html">Ch 11: The Palantír</option>
+                                <option disabled>── BOOK FOUR ──</option>
+                                <option value="chapter1-tt-b4.html">Ch 1: The Taming of Sméagol</option>
+                                <option value="chapter2-tt-b4.html">Ch 2: The Passage of the Marshes</option>
+                                <option value="chapter3-tt-b4.html">Ch 3: The Black Gate is Closed</option>
+                                <option value="chapter4-tt-b4.html">Ch 4: Of Herbs and Stewed Rabbit</option>
+                                <option value="chapter5-tt-b4.html">Ch 5: The Window on the West</option>
+                                <option value="chapter6-tt-b4.html">Ch 6: The Forbidden Pool</option>
+                                <option value="chapter7-tt-b4.html">Ch 7: Journey to the Cross-roads</option>
+                                <option value="chapter8-tt-b4.html">Ch 8: The Stairs of Cirith Ungol</option>
+                                <option value="chapter9-tt-b4.html">Ch 9: Shelob's Lair</option>
+                                <option value="chapter10-tt-b4.html">Ch 10: The Choices of Master Samwise</option>
+                            </optgroup>
+                            <optgroup label="THE RETURN OF THE KING">
+                                <option disabled>── BOOK FIVE ──</option>
+                                <option value="chapter1-rotk.html">Ch 1: Minas Tirith</option>
+                                <option value="chapter2-rotk.html">Ch 2: The Passing of the Grey Company</option>
+                                <option value="chapter3-rotk.html">Ch 3: The Muster of Rohan</option>
+                                <option value="chapter4-rotk.html">Ch 4: The Siege of Gondor</option>
+                                <option value="chapter5-rotk.html">Ch 5: The Ride of the Rohirrim</option>
+                                <option value="chapter6-rotk.html">Ch 6: The Battle of the Pelennor Fields</option>
+                                <option value="chapter7-rotk.html">Ch 7: The Pyre of Denethor</option>
+                                <option value="chapter8-rotk.html">Ch 8: The Houses of Healing</option>
+                                <option value="chapter9-rotk.html">Ch 9: The Last Debate</option>
+                                <option value="chapter10-rotk.html">Ch 10: The Black Gate Opens</option>
+                                <option disabled>── BOOK SIX ──</option>
+                                <option value="chapter1-rotk-b6.html">Ch 1: The Tower of Cirith Ungol</option>
+                                <option value="chapter2-rotk-b6.html">Ch 2: The Land of Shadow</option>
+                                <option value="chapter3-rotk-b6.html">Ch 3: Mount Doom</option>
+                                <option value="chapter4-rotk-b6.html">Ch 4: The Field of Cormallen</option>
+                                <option value="chapter5-rotk-b6.html">Ch 5: The Steward and the King</option>
+                                <option value="chapter6-rotk-b6.html">Ch 6: Many Partings</option>
+                                <option value="chapter7-rotk-b6.html">Ch 7: Homeward Bound</option>
+                                <option value="chapter8-rotk-b6.html">Ch 8: The Scouring of the Shire</option>
+                                <option value="chapter9-rotk-b6.html">Ch 9: The Grey Havens</option>
+                            </optgroup>
                         </select>
                     </nav>
 
@@ -143,6 +204,16 @@
                         <div style={{ fontSize: "0.8rem", color: "#8c7a65", letterSpacing: "2px" }}>{JOURNEY_DATA.bookTitle}</div>
                         <h1 style={{ fontSize: "1.4rem", color: "#f2e6d0" }}>Chapter {current.number}: {current.title}</h1>
                     </header>
+
+                    {/* DAYS ELAPSED RESTORED */}
+                    <div style={{ border: "1px solid #c1a45d", padding: "20px", borderRadius: "4px", backgroundColor: "#1e1a15", boxShadow: "inset 0 0 20px black" }}>
+                        <span style={{ display: "block", textAlign: "center", fontSize: "0.7rem", color: "#c1a45d", marginBottom: "10px" }}>CHRONICLE OF THE JOURNEY</span>
+                        <div style={{ display: "flex", justifyContent: "space-between" }}>
+                            <div><small style={{ color: "#8c7a65" }}>Departure</small><br />{JOURNEY_DATA.departureDate}</div>
+                            <div style={{ textAlign: "right" }}><small style={{ color: "#8c7a65" }}>Current Date</small><br />{current.currentDate}</div>
+                        </div>
+                        <div style={{ textAlign: "center", fontSize: "1.5rem", marginTop: "10px" }}>{calculateElapsed(current.currentDate)} Days Elapsed</div>
+                    </div>
 
                     <section style={styles.section}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
@@ -165,7 +236,7 @@
                                 position: "absolute", width: `${zoom}%`, height: `${zoom}%`,
                                 left: `${50 - mapPos.x * (zoom/100)}%`,
                                 top: `${50 - mapPos.y * (zoom/100)}%`,
-                                transition: isDragging ? "none" : "left 0.3s ease-out, top 0.3s ease-out"
+                                transition: isDragging ? "none" : "left 0.2s ease-out, top 0.2s ease-out"
                             }}>
                                 <img src="https://i.redd.it/r8403tg0wo5c1.jpeg" style={{ width: "100%", height: "100%", display: "block" }} />
                                 <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
@@ -180,6 +251,26 @@
                                 X: {mapPos.x.toFixed(1)}% | Y: {mapPos.y.toFixed(1)}%
                             </div>
                         </div>
+                    </section>
+
+                    <section style={styles.section}>
+                        <span style={styles.boxLabel}>Visual Gallery</span>
+                        {current.illustrations.map((item, idx) => (
+                            <div key={idx} style={{ marginBottom: "20px" }}>
+                                <span style={styles.itemLabel}>{item.label}</span>
+                                <img src={item.url} style={{ width: "100%", borderRadius: "2px" }} alt={item.label} />
+                            </div>
+                        ))}
+                    </section>
+
+                    <section style={styles.section}>
+                        <span style={styles.boxLabel}>Songs & Poems</span>
+                        {current.videos.map((item, idx) => (
+                            <div key={idx} style={{ marginBottom: "20px" }}>
+                                <span style={styles.itemLabel}>{item.label}</span>
+                                <iframe width="100%" height="200" src={`https://www.youtube.com/embed/${item.id}`} style={{ border: "none" }} allowFullScreen></iframe>
+                            </div>
+                        ))}
                     </section>
                 </div>
             );
