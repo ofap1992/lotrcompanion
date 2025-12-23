@@ -32,6 +32,7 @@
                 title: "A LONG-EXPECTED PARTY",
                 location: "Hobbiton (Bag End)",
                 currentDate: "September 22",
+                // SNAP TO THESE COORDS
                 coords: { x: 18.2, y: 22.5 }, 
                 illustrations: [
                     { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
@@ -93,7 +94,13 @@
             }, []);
 
             const handleMouseDown = (e) => { setIsDragging(true); lastPos.current = { x: e.clientX, y: e.clientY }; };
-            const handleTouchStart = (e) => { if (e.touches.length === 1) { setIsDragging(true); lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } };
+            const handleTouchStart = (e) => { 
+                if (e.touches.length === 1) { 
+                    setIsDragging(true); 
+                    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; 
+                } 
+            };
+
             const move = (clientX, clientY) => {
                 if (!isDragging) return;
                 const dx = clientX - lastPos.current.x;
@@ -101,6 +108,21 @@
                 const sensitivity = 0.3 * (100 / zoom);
                 setMapPos(prev => ({ x: prev.x - dx * sensitivity, y: prev.y - dy * sensitivity }));
                 lastPos.current = { x: clientX, y: clientY };
+            };
+
+            const handleMapClick = (e) => {
+                // If we were just dragging, don't trigger a "click snap"
+                if (Math.abs(e.clientX - lastPos.current.x) > 5) return;
+
+                const rect = mapRef.current.getBoundingClientRect();
+                const clickX = (e.clientX - rect.left) / rect.width;
+                const clickY = (e.clientY - rect.top) / rect.height;
+
+                const zoomFactor = 100 / (zoom / 100);
+                const newX = mapPos.x + (clickX - 0.5) * zoomFactor;
+                const newY = mapPos.y + (clickY - 0.5) * zoomFactor;
+
+                setMapPos({ x: newX, y: newY });
             };
 
             const calculateElapsed = (dateStr) => {
@@ -123,7 +145,6 @@
                         <select defaultValue="" onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
                             <option value="" disabled>Select a Chapter...</option>
                             <optgroup label="FELLOWSHIP OF THE RING">
-                                <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
                                 <option value="chapter2.html">Ch 2: The Shadow of the Past</option>
                                 <option value="chapter3.html">Ch 3: Three Is Company</option>
@@ -136,65 +157,6 @@
                                 <option value="chapter10.html">Ch 10: Strider</option>
                                 <option value="chapter11.html">Ch 11: A Knife in the Dark</option>
                                 <option value="chapter12.html">Ch 12: Flight to the Ford</option>
-                                <option disabled>── BOOK TWO ──</option>
-                                <option value="chapter1-b2.html">Ch 1: Many Meetings</option>
-                                <option value="chapter2-b2.html">Ch 2: The Council of Elrond</option>
-                                <option value="chapter3-b2.html">Ch 3: The Ring Goes South</option>
-                                <option value="chapter4-b2.html">Ch 4: A Journey in the Dark</option>
-                                <option value="chapter5-b2.html">Ch 5: The Bridge of Khazad-dûm</option>
-                                <option value="chapter6-b2.html">Ch 6: Lothlórien</option>
-                                <option value="chapter7-b2.html">Ch 7: The Mirror of Galadriel</option>
-                                <option value="chapter8-b2.html">Ch 8: Farewell to Lórien</option>
-                                <option value="chapter9-b2.html">Ch 9: The Great River</option>
-                                <option value="chapter10-b2.html">Ch 10: The Breaking of the Fellowship</option>
-                            </optgroup>
-                            <optgroup label="THE TWO TOWERS">
-                                <option disabled>── BOOK THREE ──</option>
-                                <option value="chapter1-tt.html">Ch 1: The Departure of Boromir</option>
-                                <option value="chapter2-tt.html">Ch 2: The Riders of Rohan</option>
-                                <option value="chapter3-tt.html">Ch 3: The Uruk-hai</option>
-                                <option value="chapter4-tt.html">Ch 4: Treebeard</option>
-                                <option value="chapter5-tt.html">Ch 5: The White Rider</option>
-                                <option value="chapter6-tt.html">Ch 6: The King of the Golden Hall</option>
-                                <option value="chapter7-tt.html">Ch 7: Helm's Deep</option>
-                                <option value="chapter8-tt.html">Ch 8: The Road to Isengard</option>
-                                <option value="chapter9-tt.html">Ch 9: Flotsam and Jetsam</option>
-                                <option value="chapter10-tt.html">Ch 10: The Voice of Saruman</option>
-                                <option value="chapter11-tt.html">Ch 11: The Palantír</option>
-                                <option disabled>── BOOK FOUR ──</option>
-                                <option value="chapter1-tt-b4.html">Ch 1: The Taming of Sméagol</option>
-                                <option value="chapter2-tt-b4.html">Ch 2: The Passage of the Marshes</option>
-                                <option value="chapter3-tt-b4.html">Ch 3: The Black Gate is Closed</option>
-                                <option value="chapter4-tt-b4.html">Ch 4: Of Herbs and Stewed Rabbit</option>
-                                <option value="chapter5-tt-b4.html">Ch 5: The Window on the West</option>
-                                <option value="chapter6-tt-b4.html">Ch 6: The Forbidden Pool</option>
-                                <option value="chapter7-tt-b4.html">Ch 7: Journey to the Cross-roads</option>
-                                <option value="chapter8-tt-b4.html">Ch 8: The Stairs of Cirith Ungol</option>
-                                <option value="chapter9-tt-b4.html">Ch 9: Shelob's Lair</option>
-                                <option value="chapter10-tt-b4.html">Ch 10: The Choices of Master Samwise</option>
-                            </optgroup>
-                            <optgroup label="THE RETURN OF THE KING">
-                                <option disabled>── BOOK FIVE ──</option>
-                                <option value="chapter1-rotk.html">Ch 1: Minas Tirith</option>
-                                <option value="chapter2-rotk.html">Ch 2: The Passing of the Grey Company</option>
-                                <option value="chapter3-rotk.html">Ch 3: The Muster of Rohan</option>
-                                <option value="chapter4-rotk.html">Ch 4: The Siege of Gondor</option>
-                                <option value="chapter5-rotk.html">Ch 5: The Ride of the Rohirrim</option>
-                                <option value="chapter6-rotk.html">Ch 6: The Battle of the Pelennor Fields</option>
-                                <option value="chapter7-rotk.html">Ch 7: The Pyre of Denethor</option>
-                                <option value="chapter8-rotk.html">Ch 8: The Houses of Healing</option>
-                                <option value="chapter9-rotk.html">Ch 9: The Last Debate</option>
-                                <option value="chapter10-rotk.html">Ch 10: The Black Gate Opens</option>
-                                <option disabled>── BOOK SIX ──</option>
-                                <option value="chapter1-rotk-b6.html">Ch 1: The Tower of Cirith Ungol</option>
-                                <option value="chapter2-rotk-b6.html">Ch 2: The Land of Shadow</option>
-                                <option value="chapter3-rotk-b6.html">Ch 3: Mount Doom</option>
-                                <option value="chapter4-rotk-b6.html">Ch 4: The Field of Cormallen</option>
-                                <option value="chapter5-rotk-b6.html">Ch 5: The Steward and the King</option>
-                                <option value="chapter6-rotk-b6.html">Ch 6: Many Partings</option>
-                                <option value="chapter7-rotk-b6.html">Ch 7: Homeward Bound</option>
-                                <option value="chapter8-rotk-b6.html">Ch 8: The Scouring of the Shire</option>
-                                <option value="chapter9-rotk-b6.html">Ch 9: The Grey Havens</option>
                             </optgroup>
                         </select>
                     </nav>
@@ -203,15 +165,6 @@
                         <div style={{ fontSize: "0.8rem", color: "#8c7a65", letterSpacing: "2px" }}>{CHAPTER_DATA.bookTitle}</div>
                         <h1 style={{ fontSize: "1.4rem", color: "#f2e6d0" }}>Chapter {data.number}: {data.title}</h1>
                     </header>
-
-                    <div style={{ border: "1px solid #c1a45d", padding: "20px", borderRadius: "4px", backgroundColor: "#1e1a15", boxShadow: "inset 0 0 20px black" }}>
-                        <span style={{ display: "block", textAlign: "center", fontSize: "0.7rem", color: "#c1a45d", marginBottom: "10px" }}>CHRONICLE OF THE JOURNEY</span>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <div><small style={{ color: "#8c7a65" }}>Departure</small><br />{CHAPTER_DATA.departureDate}</div>
-                            <div style={{ textAlign: "right" }}><small style={{ color: "#8c7a65" }}>Current Date</small><br />{data.currentDate}</div>
-                        </div>
-                        <div style={{ textAlign: "center", fontSize: "1.5rem", marginTop: "10px" }}>{calculateElapsed(data.currentDate)} Days Elapsed</div>
-                    </div>
 
                     <section style={styles.section}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
@@ -226,7 +179,7 @@
                             style={styles.mapContainer} 
                             onMouseDown={handleMouseDown} 
                             onMouseMove={(e) => move(e.clientX, e.clientY)} 
-                            onMouseUp={() => setIsDragging(false)} 
+                            onMouseUp={(e) => { setIsDragging(false); handleMapClick(e); }} 
                             onMouseLeave={() => setIsDragging(false)}
                             onTouchStart={handleTouchStart}
                             onTouchMove={(e) => { if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY); }}
@@ -238,24 +191,34 @@
                                 backgroundSize: `${zoom}%`,
                                 backgroundPosition: `${mapPos.x}% ${mapPos.y}%`,
                                 backgroundRepeat: "no-repeat",
-                                transition: isDragging ? "none" : "background-position 0.1s ease-out"
+                                transition: isDragging ? "none" : "background-position 0.3s ease-out"
                             }}></div>
 
+                            {/* TARGET RETICLE */}
                             <div style={{
-                                position: 'absolute',
-                                bottom: '10px',
-                                right: '10px',
-                                backgroundColor: 'rgba(0,0,0,0.7)',
-                                color: '#c1a45d',
-                                padding: '4px 8px',
-                                fontSize: '0.7rem',
-                                borderRadius: '4px',
-                                pointerEvents: 'none',
-                                border: '1px solid #3d3329',
-                                zIndex: 10
+                                position: 'absolute', top: '50%', left: '50%',
+                                width: '20px', height: '20px',
+                                border: '2px solid #ff4444', borderRadius: '50%',
+                                transform: 'translate(-50%, -50%)',
+                                pointerEvents: 'none', boxShadow: '0 0 10px rgba(0,0,0,0.8)',
+                                zIndex: 5
                             }}>
-                                X: {mapPos.x.toFixed(1)}% | Y: {mapPos.y.toFixed(1)}%
+                                <div style={{ position: 'absolute', top: '50%', left: '0', width: '100%', height: '1px', backgroundColor: '#ff4444' }}></div>
+                                <div style={{ position: 'absolute', left: '50%', top: '0', width: '1px', height: '100%', backgroundColor: '#ff4444' }}></div>
                             </div>
+
+                            {/* COORDINATE TRACKER */}
+                            <div style={{
+                                position: 'absolute', bottom: '10px', right: '10px',
+                                backgroundColor: 'rgba(0,0,0,0.8)', color: '#c1a45d',
+                                padding: '4px 8px', fontSize: '0.7rem', borderRadius: '4px',
+                                pointerEvents: 'none', border: '1px solid #c1a45d', zIndex: 10
+                            }}>
+                                TARGET X: {mapPos.x.toFixed(1)}% | Y: {mapPos.y.toFixed(1)}%
+                            </div>
+                        </div>
+                        <div style={{textAlign: 'center', marginTop: '8px'}}>
+                            <small style={{fontSize: '0.6rem', color: '#8c7a65'}}>Click map to center on specific pixel</small>
                         </div>
                     </section>
 
