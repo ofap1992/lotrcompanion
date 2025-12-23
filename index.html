@@ -12,7 +12,6 @@
         * { box-sizing: border-box; }
         input[type=range] { cursor: pointer; accent-color: #c1a45d; }
 
-        /* --- STABLE NAVIGATION STYLES --- */
         .nav-bar {
             display: flex;
             justify-content: space-between;
@@ -73,11 +72,12 @@
             const [isDragging, setIsDragging] = useState(false);
             const mapRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
-            const lastDist = useRef(0);
+            const lastTouchDist = useRef(0);
 
             useEffect(() => {
                 const mapContainer = mapRef.current;
                 
+                // HANDLE MOUSE WHEEL & PINCH GESTURE
                 const handleWheel = (e) => {
                     e.preventDefault(); 
                     const zoomSpeed = 40;
@@ -87,23 +87,25 @@
                     });
                 };
 
-                // PINCH TO ZOOM LOGIC
                 const handleTouchMove = (e) => {
                     if (e.touches.length === 2) {
-                        e.preventDefault(); // Prevent page zoom
+                        e.preventDefault(); // STOP THE BROWSER FROM ZOOMING THE PAGE
                         const dist = Math.hypot(
                             e.touches[0].pageX - e.touches[1].pageX,
                             e.touches[0].pageY - e.touches[1].pageY
                         );
-                        if (lastDist.current > 0) {
-                            const delta = dist - lastDist.current;
-                            setZoom(prev => Math.min(Math.max(prev + delta * 1.5, 100), 1000));
+                        
+                        if (lastTouchDist.current > 0) {
+                            const zoomFactor = dist / lastTouchDist.current;
+                            setZoom(prev => Math.min(Math.max(prev * zoomFactor, 100), 1000));
                         }
-                        lastDist.current = dist;
+                        lastTouchDist.current = dist;
                     }
                 };
 
-                const handleTouchEnd = () => { lastDist.current = 0; };
+                const handleTouchEnd = () => {
+                    lastTouchDist.current = 0;
+                };
 
                 if (mapContainer) {
                     mapContainer.addEventListener("wheel", handleWheel, { passive: false });
@@ -167,7 +169,7 @@
                     <nav className="nav-bar">
                         <span style={{fontSize: '0.65rem', color: '#8c7a65'}}>GO TO:</span>
                         <select defaultValue="" onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
-                            <option value="" disabled>Select Chapter...</option>
+                            <option value="" disabled>Select a Chapter...</option>
                             <optgroup label="FELLOWSHIP OF THE RING">
                                 <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
