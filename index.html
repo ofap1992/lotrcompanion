@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOTR Journey Companion</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com-react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         body { margin: 0; background-color: #161310; color: #d4c3a1; font-family: "Georgia", serif; }
@@ -32,7 +32,6 @@
                 title: "A LONG-EXPECTED PARTY",
                 location: "Hobbiton (Bag End)",
                 currentDate: "September 22",
-                // UPDATE THESE AFTER YOU FIND YOUR SPOT USING THE COORDINATE TRACKER
                 coords: { x: 18.2, y: 22.5 }, 
                 illustrations: [
                     { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
@@ -242,7 +241,6 @@
                                 transition: isDragging ? "none" : "background-position 0.1s ease-out"
                             }}></div>
 
-                            {/* COORDINATE TRACKER OVERLAY */}
                             <div style={{
                                 position: 'absolute',
                                 bottom: '10px',
