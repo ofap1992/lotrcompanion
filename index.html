@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOTR Journey Companion</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
-    <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
+    <script src="https://unpkg.com-react-dom@18/umd/react-dom.production.min.js"></script>
     <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
     <style>
         body { margin: 0; background-color: #161310; color: #d4c3a1; font-family: "Georgia", serif; }
@@ -22,7 +22,7 @@
         const { useState, useRef, useEffect } = React;
 
         // =========================================================
-        // 1. EDITABLE CONTENT AREA (The only place you need to touch)
+        // 1. EDITABLE CONTENT AREA
         // =========================================================
         const CHAPTER_DATA = {
             bookTitle: "THE FELLOWSHIP OF THE RING",
@@ -32,7 +32,8 @@
                 title: "A LONG-EXPECTED PARTY",
                 location: "Hobbiton (Bag End)",
                 currentDate: "September 22",
-                coords: { x: 18.2, y: 22.5 }, // Map coordinates
+                // UPDATE THESE AFTER YOU FIND YOUR SPOT USING THE COORDINATE TRACKER
+                coords: { x: 18.2, y: 22.5 }, 
                 illustrations: [
                     { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
                     { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf the Grey" },
@@ -48,7 +49,7 @@
         };
 
         // =========================================================
-        // 2. TECHNICAL ENGINE (The logic that runs the app)
+        // 2. TECHNICAL ENGINE
         // =========================================================
         const LOTRCompanion = () => {
             const data = CHAPTER_DATA.currentChapter;
@@ -125,7 +126,7 @@
                             <optgroup label="FELLOWSHIP OF THE RING">
                                 <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
-                                <option value="chapter2.html">Ch 2: The Shadow Of The Past</option>
+                                <option value="chapter2.html">Ch 2: The Shadow of the Past</option>
                                 <option value="chapter3.html">Ch 3: Three Is Company</option>
                                 <option value="chapter4.html">Ch 4: A Shortcut to Mushrooms</option>
                                 <option value="chapter5.html">Ch 5: A Conspiracy Unmasked</option>
@@ -240,6 +241,23 @@
                                 backgroundRepeat: "no-repeat",
                                 transition: isDragging ? "none" : "background-position 0.1s ease-out"
                             }}></div>
+
+                            {/* COORDINATE TRACKER OVERLAY */}
+                            <div style={{
+                                position: 'absolute',
+                                bottom: '10px',
+                                right: '10px',
+                                backgroundColor: 'rgba(0,0,0,0.7)',
+                                color: '#c1a45d',
+                                padding: '4px 8px',
+                                fontSize: '0.7rem',
+                                borderRadius: '4px',
+                                pointerEvents: 'none',
+                                border: '1px solid #3d3329',
+                                zIndex: 10
+                            }}>
+                                X: {mapPos.x.toFixed(1)}% | Y: {mapPos.y.toFixed(1)}%
+                            </div>
                         </div>
                     </section>
 
@@ -271,4 +289,3 @@
     </script>
 </body>
 </html>
-
