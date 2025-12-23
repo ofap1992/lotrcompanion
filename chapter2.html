@@ -2,7 +2,7 @@
 <html lang="en">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
     <title>LOTR Journey Companion</title>
     <script src="https://unpkg.com/react@18/umd/react.production.min.js"></script>
     <script src="https://unpkg.com/react-dom@18/umd/react-dom.production.min.js"></script>
@@ -12,7 +12,6 @@
         * { box-sizing: border-box; }
         input[type=range] { cursor: pointer; accent-color: #c1a45d; }
 
-        /* --- STABLE NAVIGATION STYLES --- */
         .nav-bar {
             display: flex;
             justify-content: space-between;
@@ -45,8 +44,8 @@
             const chapters = [
                 {
                     book: "The Fellowship of the Ring",
-                    number: 1,
-                    title: "A LONG-EXPECTED PARTY",
+                    number: 2,
+                    title: "THE SHADOW OF THE PAST",
                     location: "Hobbiton (Bag End)",
                     currentDate: "September 22",
                     illustrations: [
@@ -73,9 +72,12 @@
             const [isDragging, setIsDragging] = useState(false);
             const mapRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
+            const lastTouchDist = useRef(0);
 
             useEffect(() => {
                 const mapContainer = mapRef.current;
+                
+                // HANDLE MOUSE WHEEL & PINCH GESTURE
                 const handleWheel = (e) => {
                     e.preventDefault(); 
                     const zoomSpeed = 40;
@@ -84,27 +86,53 @@
                         return Math.min(Math.max(nextZoom, 100), 1000);
                     });
                 };
+
+                const handleTouchMove = (e) => {
+                    if (e.touches.length === 2) {
+                        e.preventDefault(); // STOP THE BROWSER FROM ZOOMING THE PAGE
+                        const dist = Math.hypot(
+                            e.touches[0].pageX - e.touches[1].pageX,
+                            e.touches[0].pageY - e.touches[1].pageY
+                        );
+                        
+                        if (lastTouchDist.current > 0) {
+                            const zoomFactor = dist / lastTouchDist.current;
+                            setZoom(prev => Math.min(Math.max(prev * zoomFactor, 100), 1000));
+                        }
+                        lastTouchDist.current = dist;
+                    }
+                };
+
+                const handleTouchEnd = () => {
+                    lastTouchDist.current = 0;
+                };
+
                 if (mapContainer) {
                     mapContainer.addEventListener("wheel", handleWheel, { passive: false });
+                    mapContainer.addEventListener("touchmove", handleTouchMove, { passive: false });
+                    mapContainer.addEventListener("touchend", handleTouchEnd);
                 }
                 return () => {
-                    if (mapContainer) mapContainer.removeEventListener("wheel", handleWheel);
+                    if (mapContainer) {
+                        mapContainer.removeEventListener("wheel", handleWheel);
+                        mapContainer.removeEventListener("touchmove", handleTouchMove);
+                        mapContainer.removeEventListener("touchend", handleTouchEnd);
+                    }
                 };
             }, []);
 
-            // Handle Desktop Start
             const handleMouseDown = (e) => {
                 setIsDragging(true);
                 lastPos.current = { x: e.clientX, y: e.clientY };
             };
 
-            // Handle Mobile Start
             const handleTouchStart = (e) => {
-                setIsDragging(true);
-                lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                if (e.touches.length === 1) {
+                    setIsDragging(true);
+                    lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY };
+                }
             };
 
-            // Shared movement logic
             const move = (clientX, clientY) => {
                 if (!isDragging) return;
                 const dx = clientX - lastPos.current.x;
@@ -118,7 +146,9 @@
             };
 
             const handleMouseMove = (e) => move(e.clientX, e.clientY);
-            const handleTouchMove = (e) => move(e.touches[0].clientX, e.touches[0].clientY);
+            const handleTouchMoveSingle = (e) => {
+                if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY);
+            };
 
             const calculateElapsed = (dateStr) => {
                 if (dateStr.includes("September 22")) return 0;
@@ -131,24 +161,15 @@
                 section: { backgroundColor: "#1e1a15", border: "1px solid #3d3329", padding: "15px", borderRadius: "4px" },
                 boxLabel: { fontSize: "0.6rem", color: "#8c7a65", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px", display: "block" },
                 itemLabel: { fontSize: "0.75rem", color: "#c1a45d", marginBottom: "8px", borderBottom: "1px solid #3d3329", paddingBottom: "4px", display: "block" },
-                mapContainer: { 
-                    width: "100%", 
-                    height: "350px", 
-                    border: "2px solid #c1a45d", 
-                    position: "relative", 
-                    overflow: "hidden", 
-                    cursor: isDragging ? "grabbing" : "grab", 
-                    borderRadius: "4px", 
-                    touchAction: "none" 
-                }
+                mapContainer: { width: "100%", height: "350px", border: "2px solid #c1a45d", position: "relative", overflow: "hidden", cursor: isDragging ? "grabbing" : "grab", borderRadius: "4px", touchAction: "none" }
             };
 
             return (
                 <div style={styles.container}>
-                    {/* --- NAVIGATION BAR --- */}
                     <nav className="nav-bar">
                         <span style={{fontSize: '0.65rem', color: '#8c7a65'}}>GO TO:</span>
-                        <select onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
+                        <select defaultValue="" onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
+                            <option value="" disabled>Select a Chapter...</option>
                             <optgroup label="FELLOWSHIP OF THE RING">
                                 <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
@@ -256,7 +277,7 @@
                             onMouseUp={() => setIsDragging(false)} 
                             onMouseLeave={() => setIsDragging(false)}
                             onTouchStart={handleTouchStart}
-                            onTouchMove={handleTouchMove}
+                            onTouchMove={handleTouchMoveSingle}
                             onTouchEnd={() => setIsDragging(false)}
                         >
                             <div style={{
@@ -269,7 +290,7 @@
                             }}></div>
                         </div>
                         <div style={{textAlign: 'center', marginTop: '5px'}}>
-                            <small style={{fontSize: '0.55rem', color: '#8c7a65'}}>Scroll to zoom • Drag to move</small>
+                            <small style={{fontSize: '0.55rem', color: '#8c7a65'}}>Pinch to zoom • Drag to move</small>
                         </div>
                     </section>
 
