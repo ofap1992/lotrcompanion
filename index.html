@@ -32,44 +32,33 @@
         const JOURNEY_DATA = {
             bookTitle: "THE FELLOWSHIP OF THE RING",
             departureDate: "September 23",
-            // ADD NEW CHAPTER COORDS TO THIS LIST TO GROW THE LINE
             chapters: [
                 {
                     number: 1,
                     title: "A LONG-EXPECTED PARTY",
                     location: "Hobbiton (Bag End)",
                     currentDate: "September 22",
-                    coords: { x: 18.2, y: 22.5 },
+                    coords: { x: 27.6, y: 5.0 },
                     illustrations: [
                         { url: "https://i.imgur.com/GBSMRsK.jpeg", label: "Bag End" },
-                        { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf the Grey" },
-                        { url: "https://i.imgur.com/h0kIwMT.jpeg", label: "Fireworks at Bilbo's party" },
-                        { url: "https://i.imgur.com/ixBz7nb.jpeg", label: "Frodo and Gandalf discuss the Ring" },
-                        { url: "https://i.imgur.com/nzlwhCp.jpeg", label: "The Ring" }
+                        { url: "https://i.imgur.com/yQEGPTw.jpeg", label: "Gandalf" }
                     ],
-                    videos: [
-                        { id: "9B6dsfGazyI", label: "Roads Go Ever On - Clamavi De Profundis" },
-                        { id: "CL_3mlOPnGI", label: "Concerning Hobbits - Howard Shore" }
-                    ]
+                    videos: [{ id: "9B6dsfGazyI", label: "Roads Go Ever On" }]
                 },
                 {
                     number: 2,
                     title: "THE SHADOW OF THE PAST",
                     location: "The Shire",
                     currentDate: "September 25",
-                    coords: { x: 21.0, y: 23.5 }, // Find your new coord with the tracker!
+                    coords: { x: 21.0, y: 23.5 },
                     illustrations: [],
                     videos: []
                 }
             ]
         };
 
-        // CHANGE THIS NUMBER FOR EACH FILE (0 = Ch1, 1 = Ch2, etc.)
         const ACTIVE_CHAPTER_INDEX = 0; 
 
-        // =========================================================
-        // 2. TECHNICAL ENGINE
-        // =========================================================
         const LOTRCompanion = () => {
             const current = JOURNEY_DATA.chapters[ACTIVE_CHAPTER_INDEX];
             const [mapPos, setMapPos] = useState(current.coords);
@@ -77,49 +66,17 @@
             const [isDragging, setIsDragging] = useState(false);
             const mapRef = useRef(null);
             const lastPos = useRef({ x: 0, y: 0 });
-            const lastTouchDist = useRef(0);
 
             const pathPoints = JOURNEY_DATA.chapters
                 .slice(0, ACTIVE_CHAPTER_INDEX + 1)
                 .map(ch => ch.coords);
 
-            useEffect(() => {
-                const mapContainer = mapRef.current;
-                const handleWheel = (e) => {
-                    e.preventDefault();
-                    setZoom(prev => Math.min(Math.max(e.deltaY < 0 ? prev + 40 : prev - 40, 100), 1000));
-                };
-                const handleTouchMove = (e) => {
-                    if (e.touches.length === 2) {
-                        e.preventDefault();
-                        const dist = Math.hypot(e.touches[0].pageX - e.touches[1].pageX, e.touches[0].pageY - e.touches[1].pageY);
-                        if (lastTouchDist.current > 0) {
-                            const zoomFactor = dist / lastTouchDist.current;
-                            setZoom(prev => Math.min(Math.max(prev * zoomFactor, 100), 1000));
-                        }
-                        lastTouchDist.current = dist;
-                    }
-                };
-                const handleTouchEnd = () => { lastTouchDist.current = 0; };
+            const handleStart = (clientX, clientY) => {
+                setIsDragging(true);
+                lastPos.current = { x: clientX, y: clientY };
+            };
 
-                if (mapContainer) {
-                    mapContainer.addEventListener("wheel", handleWheel, { passive: false });
-                    mapContainer.addEventListener("touchmove", handleTouchMove, { passive: false });
-                    mapContainer.addEventListener("touchend", handleTouchEnd);
-                }
-                return () => {
-                    if (mapContainer) {
-                        mapContainer.removeEventListener("wheel", handleWheel);
-                        mapContainer.removeEventListener("touchmove", handleTouchMove);
-                        mapContainer.removeEventListener("touchend", handleTouchEnd);
-                    }
-                };
-            }, []);
-
-            const handleMouseDown = (e) => { setIsDragging(true); lastPos.current = { x: e.clientX, y: e.clientY }; };
-            const handleTouchStart = (e) => { if (e.touches.length === 1) { setIsDragging(true); lastPos.current = { x: e.touches[0].clientX, y: e.touches[0].clientY }; } };
-            
-            const move = (clientX, clientY) => {
+            const handleMove = (clientX, clientY) => {
                 if (!isDragging) return;
                 const dx = clientX - lastPos.current.x;
                 const dy = clientY - lastPos.current.y;
@@ -134,14 +91,10 @@
                 const clickX = (e.clientX - rect.left) / rect.width;
                 const clickY = (e.clientY - rect.top) / rect.height;
                 const zoomFactor = 100 / (zoom / 100);
-                const newX = mapPos.x + (clickX - 0.5) * zoomFactor;
-                const newY = mapPos.y + (clickY - 0.5) * zoomFactor;
-                setMapPos({ x: newX, y: newY });
-            };
-
-            const calculateElapsed = (dateStr) => {
-                if (dateStr.includes("September 22")) return 0;
-                return parseInt(dateStr.split(" ")[1]) - 23;
+                setMapPos({ 
+                    x: mapPos.x + (clickX - 0.5) * zoomFactor, 
+                    y: mapPos.y + (clickY - 0.5) * zoomFactor 
+                });
             };
 
             const styles = {
@@ -149,18 +102,16 @@
                 section: { backgroundColor: "#1e1a15", border: "1px solid #3d3329", padding: "15px", borderRadius: "4px" },
                 boxLabel: { fontSize: "0.6rem", color: "#8c7a65", textTransform: "uppercase", letterSpacing: "1px", marginBottom: "12px", display: "block" },
                 itemLabel: { fontSize: "0.75rem", color: "#c1a45d", marginBottom: "8px", borderBottom: "1px solid #3d3329", paddingBottom: "4px", display: "block" },
-                mapContainer: { width: "100%", height: "350px", border: "2px solid #c1a45d", position: "relative", overflow: "hidden", cursor: isDragging ? "grabbing" : "grab", borderRadius: "4px", touchAction: "none" }
+                mapWrapper: { width: "100%", height: "350px", border: "2px solid #c1a45d", position: "relative", overflow: "hidden", borderRadius: "4px", cursor: isDragging ? "grabbing" : "grab", touchAction: "none" }
             };
 
             return (
                 <div style={styles.container}>
-                    {/* RESTORED FULL NAV BAR */}
                     <nav className="nav-bar">
                         <span style={{fontSize: '0.65rem', color: '#8c7a65'}}>GO TO:</span>
                         <select defaultValue="" onChange={(e) => { if(e.target.value) window.location.href = e.target.value; }}>
                             <option value="" disabled>Select a Chapter...</option>
                             <optgroup label="FELLOWSHIP OF THE RING">
-                                <option disabled>── BOOK ONE ──</option>
                                 <option value="index.html">Ch 1: A Long-Expected Party</option>
                                 <option value="chapter2.html">Ch 2: The Shadow of the Past</option>
                                 <option value="chapter3.html">Ch 3: Three Is Company</option>
@@ -185,54 +136,6 @@
                                 <option value="chapter9-b2.html">Ch 9: The Great River</option>
                                 <option value="chapter10-b2.html">Ch 10: The Breaking of the Fellowship</option>
                             </optgroup>
-                            <optgroup label="THE TWO TOWERS">
-                                <option disabled>── BOOK THREE ──</option>
-                                <option value="chapter1-tt.html">Ch 1: The Departure of Boromir</option>
-                                <option value="chapter2-tt.html">Ch 2: The Riders of Rohan</option>
-                                <option value="chapter3-tt.html">Ch 3: The Uruk-hai</option>
-                                <option value="chapter4-tt.html">Ch 4: Treebeard</option>
-                                <option value="chapter5-tt.html">Ch 5: The White Rider</option>
-                                <option value="chapter6-tt.html">Ch 6: The King of the Golden Hall</option>
-                                <option value="chapter7-tt.html">Ch 7: Helm's Deep</option>
-                                <option value="chapter8-tt.html">Ch 8: The Road to Isengard</option>
-                                <option value="chapter9-tt.html">Ch 9: Flotsam and Jetsam</option>
-                                <option value="chapter10-tt.html">Ch 10: The Voice of Saruman</option>
-                                <option value="chapter11-tt.html">Ch 11: The Palantír</option>
-                                <option disabled>── BOOK FOUR ──</option>
-                                <option value="chapter1-tt-b4.html">Ch 1: The Taming of Sméagol</option>
-                                <option value="chapter2-tt-b4.html">Ch 2: The Passage of the Marshes</option>
-                                <option value="chapter3-tt-b4.html">Ch 3: The Black Gate is Closed</option>
-                                <option value="chapter4-tt-b4.html">Ch 4: Of Herbs and Stewed Rabbit</option>
-                                <option value="chapter5-tt-b4.html">Ch 5: The Window on the West</option>
-                                <option value="chapter6-tt-b4.html">Ch 6: The Forbidden Pool</option>
-                                <option value="chapter7-tt-b4.html">Ch 7: Journey to the Cross-roads</option>
-                                <option value="chapter8-tt-b4.html">Ch 8: The Stairs of Cirith Ungol</option>
-                                <option value="chapter9-tt-b4.html">Ch 9: Shelob's Lair</option>
-                                <option value="chapter10-tt-b4.html">Ch 10: The Choices of Master Samwise</option>
-                            </optgroup>
-                            <optgroup label="THE RETURN OF THE KING">
-                                <option disabled>── BOOK FIVE ──</option>
-                                <option value="chapter1-rotk.html">Ch 1: Minas Tirith</option>
-                                <option value="chapter2-rotk.html">Ch 2: The Passing of the Grey Company</option>
-                                <option value="chapter3-rotk.html">Ch 3: The Muster of Rohan</option>
-                                <option value="chapter4-rotk.html">Ch 4: The Siege of Gondor</option>
-                                <option value="chapter5-rotk.html">Ch 5: The Ride of the Rohirrim</option>
-                                <option value="chapter6-rotk.html">Ch 6: The Battle of the Pelennor Fields</option>
-                                <option value="chapter7-rotk.html">Ch 7: The Pyre of Denethor</option>
-                                <option value="chapter8-rotk.html">Ch 8: The Houses of Healing</option>
-                                <option value="chapter9-rotk.html">Ch 9: The Last Debate</option>
-                                <option value="chapter10-rotk.html">Ch 10: The Black Gate Opens</option>
-                                <option disabled>── BOOK SIX ──</option>
-                                <option value="chapter1-rotk-b6.html">Ch 1: The Tower of Cirith Ungol</option>
-                                <option value="chapter2-rotk-b6.html">Ch 2: The Land of Shadow</option>
-                                <option value="chapter3-rotk-b6.html">Ch 3: Mount Doom</option>
-                                <option value="chapter4-rotk-b6.html">Ch 4: The Field of Cormallen</option>
-                                <option value="chapter5-rotk-b6.html">Ch 5: The Steward and the King</option>
-                                <option value="chapter6-rotk-b6.html">Ch 6: Many Partings</option>
-                                <option value="chapter7-rotk-b6.html">Ch 7: Homeward Bound</option>
-                                <option value="chapter8-rotk-b6.html">Ch 8: The Scouring of the Shire</option>
-                                <option value="chapter9-rotk-b6.html">Ch 9: The Grey Havens</option>
-                            </optgroup>
                         </select>
                     </nav>
 
@@ -240,16 +143,6 @@
                         <div style={{ fontSize: "0.8rem", color: "#8c7a65", letterSpacing: "2px" }}>{JOURNEY_DATA.bookTitle}</div>
                         <h1 style={{ fontSize: "1.4rem", color: "#f2e6d0" }}>Chapter {current.number}: {current.title}</h1>
                     </header>
-
-                    {/* RESTORED CHRONICLE BOX */}
-                    <div style={{ border: "1px solid #c1a45d", padding: "20px", borderRadius: "4px", backgroundColor: "#1e1a15", boxShadow: "inset 0 0 20px black" }}>
-                        <span style={{ display: "block", textAlign: "center", fontSize: "0.7rem", color: "#c1a45d", marginBottom: "10px" }}>CHRONICLE OF THE JOURNEY</span>
-                        <div style={{ display: "flex", justifyContent: "space-between" }}>
-                            <div><small style={{ color: "#8c7a65" }}>Departure</small><br />{JOURNEY_DATA.departureDate}</div>
-                            <div style={{ textAlign: "right" }}><small style={{ color: "#8c7a65" }}>Current Date</small><br />{current.currentDate}</div>
-                        </div>
-                        <div style={{ textAlign: "center", fontSize: "1.5rem", marginTop: "10px" }}>{calculateElapsed(current.currentDate)} Days Elapsed</div>
-                    </div>
 
                     <section style={styles.section}>
                         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: "10px" }}>
@@ -259,75 +152,34 @@
                                 <input type="range" min="100" max="1000" value={zoom} onChange={(e) => setZoom(Number(e.target.value))} />
                             </div>
                         </div>
-                        <div 
-                            ref={mapRef}
-                            style={styles.mapContainer} 
-                            onMouseDown={handleMouseDown} 
-                            onMouseMove={(e) => move(e.clientX, e.clientY)} 
-                            onMouseUp={(e) => { setIsDragging(false); handleMapClick(e); }} 
-                            onMouseLeave={() => setIsDragging(false)}
-                            onTouchStart={handleTouchStart}
-                            onTouchMove={(e) => { if (e.touches.length === 1) move(e.touches[0].clientX, e.touches[0].clientY); }}
+                        
+                        <div ref={mapRef} style={styles.mapWrapper}
+                            onMouseDown={(e) => handleStart(e.clientX, e.clientY)}
+                            onMouseMove={(e) => handleMove(e.clientX, e.clientY)}
+                            onMouseUp={(e) => { setIsDragging(false); handleMapClick(e); }}
+                            onTouchStart={(e) => handleStart(e.touches[0].clientX, e.touches[0].clientY)}
+                            onTouchMove={(e) => handleMove(e.touches[0].clientX, e.touches[0].clientY)}
                             onTouchEnd={() => setIsDragging(false)}
                         >
                             <div style={{
-                                width: "100%", height: "100%",
-                                backgroundImage: "url('https://i.redd.it/r8403tg0wo5c1.jpeg')",
-                                backgroundSize: `${zoom}%`,
-                                backgroundPosition: `${mapPos.x}% ${mapPos.y}%`,
-                                backgroundRepeat: "no-repeat",
-                                transition: isDragging ? "none" : "background-position 0.3s ease-out"
+                                position: "absolute", width: `${zoom}%`, height: `${zoom}%`,
+                                left: `${50 - mapPos.x * (zoom/100)}%`,
+                                top: `${50 - mapPos.y * (zoom/100)}%`,
+                                transition: isDragging ? "none" : "left 0.3s ease-out, top 0.3s ease-out"
                             }}>
-                                {/* PHASE 2 PATH OVERLAY */}
-                                <svg 
-                                    viewBox="0 0 100 100" 
-                                    preserveAspectRatio="none"
-                                    style={{
-                                        position: 'absolute',
-                                        width: `${zoom}%`, height: `${zoom}%`,
-                                        left: `${50 - mapPos.x * (zoom/100)}%`,
-                                        top: `${50 - mapPos.y * (zoom/100)}%`,
-                                        pointerEvents: 'none'
-                                    }}
-                                >
-                                    <path 
-                                        d={pathPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')} 
-                                        fill="none" stroke="#c1a45d" strokeWidth="0.4" strokeDasharray="1,1"
-                                    />
+                                <img src="https://i.redd.it/r8403tg0wo5c1.jpeg" style={{ width: "100%", height: "100%", display: "block" }} />
+                                <svg viewBox="0 0 100 100" style={{ position: "absolute", top: 0, left: 0, width: "100%", height: "100%", pointerEvents: "none" }}>
+                                    {pathPoints.length > 1 && (
+                                        <path d={pathPoints.map((p, i) => `${i === 0 ? 'M' : 'L'} ${p.x} ${p.y}`).join(' ')} 
+                                        fill="none" stroke="#c1a45d" strokeWidth="0.5" strokeDasharray="1,1" />
+                                    )}
                                     <circle cx={current.coords.x} cy={current.coords.y} r="0.8" fill="#ff4444" style={{ animation: 'pulse 2s infinite' }} />
                                 </svg>
                             </div>
-
-                            {/* COORDINATE TRACKER */}
-                            <div style={{
-                                position: 'absolute', bottom: '10px', right: '10px',
-                                backgroundColor: 'rgba(0,0,0,0.8)', color: '#c1a45d',
-                                padding: '4px 8px', fontSize: '0.7rem', borderRadius: '4px',
-                                pointerEvents: 'none', border: '1px solid #c1a45d', zIndex: 10
-                            }}>
+                            <div style={{ position: 'absolute', bottom: '10px', right: '10px', backgroundColor: 'rgba(0,0,0,0.8)', color: '#c1a45d', padding: '4px 8px', fontSize: '0.7rem', borderRadius: '4px', border: '1px solid #c1a45d' }}>
                                 X: {mapPos.x.toFixed(1)}% | Y: {mapPos.y.toFixed(1)}%
                             </div>
                         </div>
-                    </section>
-
-                    <section style={styles.section}>
-                        <span style={styles.boxLabel}>Visual Gallery</span>
-                        {current.illustrations.map((item, idx) => (
-                            <div key={idx} style={{ marginBottom: "20px" }}>
-                                <span style={styles.itemLabel}>{item.label}</span>
-                                <img src={item.url} style={{ width: "100%", borderRadius: "2px" }} alt={item.label} />
-                            </div>
-                        ))}
-                    </section>
-
-                    <section style={styles.section}>
-                        <span style={styles.boxLabel}>Songs & Poems</span>
-                        {current.videos.map((item, idx) => (
-                            <div key={idx} style={{ marginBottom: "20px" }}>
-                                <span style={styles.itemLabel}>{item.label}</span>
-                                <iframe width="100%" height="200" src={`https://www.youtube.com/embed/${item.id}`} style={{ border: "none" }} allowFullScreen></iframe>
-                            </div>
-                        ))}
                     </section>
                 </div>
             );
